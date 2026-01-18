@@ -21,7 +21,6 @@
     "open_in_tab": false
   },
   "background": {
-    "scripts": ["background.js"],
     "service_worker": "background.js",
     "type": "module"
   },
