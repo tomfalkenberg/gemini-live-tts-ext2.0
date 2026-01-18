@@ -21,7 +21,7 @@ const debouncedRequestSaveVolume = debounce((volume) => {
   chrome.runtime.sendMessage({ action: 'requestSaveVolume', volume: volume });
 }, 500); // 500ms delay
 
-const modelId = "gemini-2.0-flash-exp";
+const modelId = "gemini-2.5-flash-native-audio-preview-12-2025";
 const audioSampleRate = 24000;
 
 async function initializeAudio() {
