@@ -27,9 +27,9 @@
   "action": {
     "default_popup": "",
     "default_title": "Take screenshot to send to Gemini",
-	  "default_icon": {
-		  "32": "page_action-32.png"
-	  }
+    "default_icon": {
+      "32": "page_action-32.png"
+    }
   },
   "icons": {
     "16": "icon-16.png",
@@ -37,7 +37,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*, file:///*"],
+      "matches": ["*://*/*", "file:///*"],
       "js": ["content.js"]
     }
   ]
