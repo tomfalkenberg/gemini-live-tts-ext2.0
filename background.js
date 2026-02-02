@@ -116,8 +116,44 @@ async function checkOffscreenDocumentExists() {
   });
   return contexts.length > 0;
 }
+async function transcribeMessages(...messages) {
+  try {
+    validateAPIKey(apiKey);
 
-    chrome.runtime.sendMessage({ action: 'transcribeMessages', apiKey: apiKey, selectedVoice: selectedVoice, systemPrompt: systemPrompt, messages: messages });
+    if (!(await checkOffscreenDocumentExists())) {
+      // Create the offscreen document
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: ['AUDIO_PLAYBACK'],
+        justification: 'Audio streaming'
+      });
+      
+      // WAIT for initialization to complete
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Audio initialization timeout')), 5000);
+        
+        chrome.runtime.sendMessage({ action: 'initializeAudio' }, (response) => {
+          clearTimeout(timeout);
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else {
+            resolve(response);
+          }
+        });
+      });
+      
+      // Small additional safety delay
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    // Now send the transcription message
+    chrome.runtime.sendMessage({ 
+      action: 'transcribeMessages', 
+      apiKey: apiKey, 
+      selectedVoice: selectedVoice, 
+      systemPrompt: systemPrompt, 
+      messages: messages 
+    });
   } catch (error) {
     notifyError(error);
     throw error;
