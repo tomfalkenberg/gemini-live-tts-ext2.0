@@ -25,21 +25,29 @@ const modelId = "gemini-2.5-flash-native-audio-preview-12-2025";
 const audioSampleRate = 24000;
 
 async function initializeAudio() {
-  audioContext = new AudioContext({ sampleRate: audioSampleRate });
-  const { AudioStreamer } = await import("./audioStreamer.js");
-  audioStreamer = new AudioStreamer(audioContext);
-  await audioStreamer.resume(); // Initialize with default volume
+  try {
+    audioContext = new AudioContext({ sampleRate: audioSampleRate });
+    const { AudioStreamer } = await import("./audioStreamer.js");
+    audioStreamer = new AudioStreamer(audioContext);
+    await audioStreamer.resume(); // Initialize with default volume
 
-  // Request initial volume from background script
-  chrome.runtime.sendMessage({ action: "getInitialVolume" }, (response) => {
-    if (chrome.runtime.lastError) {
-      console.error(`Error getting initial volume: ${chrome.runtime.lastError.message}`);
-      return;
-    }
-    if (response && response.volume !== undefined && audioStreamer) {
-      audioStreamer.setVolume(response.volume);
-    }
-  });
+    // Request initial volume from background script
+    chrome.runtime.sendMessage({ action: "getInitialVolume" }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error(`Error getting initial volume: ${chrome.runtime.lastError.message}`);
+        return;
+      }
+      if (response && response.volume !== undefined && audioStreamer) {
+        audioStreamer.setVolume(response.volume);
+      }
+    });
+    
+    return true; // Signal success
+  } catch (error) {
+    console.error('Failed to initialize audio:', error);
+    throw error;
+  }
+}
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -47,13 +55,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     try {
       switch (request.action) {
         case 'initializeAudio':
-          initializeAudio();
+          await initializeAudio(); // Wait for completion
+          sendResponse({ success: true }); // Send confirmation back to background.js
           break;
         case 'transcribeMessages':
           if (request.apiKey) apiKey = request.apiKey;
           if (request.selectedVoice) selectedVoice = request.selectedVoice;
           if (request.systemPrompt) systemPrompt = request.systemPrompt;
           transcribeMessages(...request.messages);
+          sendResponse({ success: true }); // Send confirmation
           break;
         case 'cropScreenshotAndTranscribe':
           if (request.apiKey) apiKey = request.apiKey;
@@ -98,7 +108,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   })();
   return true; // Keep message channel open for async response
 });
-
 (async () => {
   const { CustomError, APIKeyError, WebSocketError } = await import("./errors.js");
 })();
