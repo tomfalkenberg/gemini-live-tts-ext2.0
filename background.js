@@ -117,19 +117,6 @@ async function checkOffscreenDocumentExists() {
   return contexts.length > 0;
 }
 
-async function transcribeMessages(...messages) {
-  try {
-    validateAPIKey(apiKey);
-
-    if (!(await checkOffscreenDocumentExists())) {
-      let offscreenDoc = await chrome.offscreen.createDocument({
-        url: 'offscreen.html',
-        reasons: ['AUDIO_PLAYBACK'],
-        justification: 'Audio streaming'
-      });
-      chrome.runtime.sendMessage({ action: 'initializeAudio' });
-    }
-
     chrome.runtime.sendMessage({ action: 'transcribeMessages', apiKey: apiKey, selectedVoice: selectedVoice, systemPrompt: systemPrompt, messages: messages });
   } catch (error) {
     notifyError(error);
@@ -185,24 +172,40 @@ function updateActionButton(playbackState) {
     chrome.action.setIcon({ path: "icon-32.png" });
   }
 }
-
 // For when the user clicks the action icon
 chrome.action.onClicked.addListener(async (tab) => {
+  // Check if offscreen exists, create if needed
   if (!(await checkOffscreenDocumentExists())) {
-    let offscreenDoc = await chrome.offscreen.createDocument({
+    await chrome.offscreen.createDocument({
       url: 'offscreen.html',
       reasons: ['AUDIO_PLAYBACK'],
       justification: 'Audio streaming'
     });
-    chrome.runtime.sendMessage({ action: 'initializeAudio' });
+    
+    // WAIT for initialization
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Initialization timeout')), 5000);
+      chrome.runtime.sendMessage({ action: 'initializeAudio' }, (response) => {
+        clearTimeout(timeout);
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve(response);
+        }
+      });
+    });
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 
-  const state = await chrome.runtime.sendMessage({ 'action': 'getPlaybackState' }); // could fail when offscreen doc doesn't exist or offscreen doc's `audioStreamer` doesn't exist
+  const state = await chrome.runtime.sendMessage({ 'action': 'getPlaybackState' });
   if (state === "playing" || state === "paused") {
     // open popup
     chrome.action.openPopup();
     return;
-  } // otherwise, take screenshot
+  }
+  
+  // otherwise, take screenshot
   let currentTab = (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
   let isFile = currentTab.url.startsWith("file://") || currentTab.title.endsWith(".pdf");
   if (!isFile) {
