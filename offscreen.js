@@ -48,7 +48,6 @@ async function initializeAudio() {
     throw error;
   }
 }
-}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   (async () => {
