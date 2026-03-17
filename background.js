@@ -127,6 +127,8 @@ async function checkOffscreenDocumentExists() {
     documentUrls: [chrome.runtime.getURL('offscreen.html')]
   });
   return contexts.length > 0;
+}
+
 async function transcribeMessages(...messages) {
   try {
     const key = await waitForAPIKey();  // Wait for API key to load
@@ -160,7 +162,7 @@ async function transcribeMessages(...messages) {
     // Now send the transcription message
     chrome.runtime.sendMessage({ 
       action: 'transcribeMessages', 
-      apiKey: key,  // ← CHANGED: Use the loaded key instead of apiKey
+      apiKey: key,  // Use the loaded key instead of apiKey
       selectedVoice: selectedVoice, 
       systemPrompt: systemPrompt, 
       messages: messages 
@@ -170,6 +172,7 @@ async function transcribeMessages(...messages) {
     throw error;
   }
 }
+
 async function handleScreenshotCapture(area) {
   try {
     const key = await waitForAPIKey();  // Wait for API key to load
@@ -181,7 +184,7 @@ async function handleScreenshotCapture(area) {
       }
       chrome.runtime.sendMessage({ 
         action: 'cropScreenshotAndTranscribe', 
-        apiKey: key,  // ← Changed from apiKey to key
+        apiKey: key,  // Use the loaded key
         selectedVoice: selectedVoice, 
         systemPrompt: systemPrompt, 
         dataUrl: dataUrl, 
@@ -215,7 +218,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       }
     };
     transcribeMessages(textMessage);
-	  chrome.action.openPopup();
+    chrome.action.openPopup();
   }
 });
 
@@ -232,6 +235,7 @@ function updateActionButton(playbackState) {
     chrome.action.setIcon({ path: "icon-32.png" });
   }
 }
+
 // For when the user clicks the action icon
 chrome.action.onClicked.addListener(async (tab) => {
   // Check if offscreen exists, create if needed
@@ -302,4 +306,3 @@ chrome.runtime.onInstalled.addListener(async ({ reason, temporary }) => {
       break;
   }
 });
-
