@@ -11,6 +11,18 @@ let selectedVoice = 'aoede'; // Default voice
 let systemPrompt = '';
 let currentVolume = 1.0; // Default volume, will be updated from storage
 
+// Helper function to ensure API key is loaded before use
+async function waitForAPIKey(maxRetries = 5, delayMs = 100) {
+  for (let i = 0; i < maxRetries; i++) {
+    if (apiKey) {
+      return apiKey;
+    }
+    // Wait before trying again
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+  throw new APIKeyError('API key not loaded. Please check extension settings.');
+}
+
 async function notifyError(error) {
   console.error(error);
   let message = '';
@@ -115,11 +127,11 @@ async function checkOffscreenDocumentExists() {
     documentUrls: [chrome.runtime.getURL('offscreen.html')]
   });
   return contexts.length > 0;
-}
 async function transcribeMessages(...messages) {
   try {
-    validateAPIKey(apiKey);
-
+    const key = await waitForAPIKey();  // Wait for API key to load
+    validateAPIKey(key);  // Validate it
+	  
     if (!(await checkOffscreenDocumentExists())) {
       // Create the offscreen document
       await chrome.offscreen.createDocument({
@@ -145,11 +157,10 @@ async function transcribeMessages(...messages) {
       // Small additional safety delay
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-
     // Now send the transcription message
     chrome.runtime.sendMessage({ 
       action: 'transcribeMessages', 
-      apiKey: apiKey, 
+      apiKey: key,  // ← CHANGED: Use the loaded key instead of apiKey
       selectedVoice: selectedVoice, 
       systemPrompt: systemPrompt, 
       messages: messages 
@@ -159,15 +170,28 @@ async function transcribeMessages(...messages) {
     throw error;
   }
 }
-
 async function handleScreenshotCapture(area) {
-  chrome.tabs.captureVisibleTab(null, { format: 'jpeg', quality: 100 }, (dataUrl) => {
-    if (chrome.runtime.lastError) {
-      notifyError(new Error(`Screenshot capture failed: ${chrome.runtime.lastError.message}`));
-      return;
-    }
-    chrome.runtime.sendMessage({ action: 'cropScreenshotAndTranscribe', apiKey: apiKey, selectedVoice: selectedVoice, systemPrompt: systemPrompt, dataUrl: dataUrl, area: area });
-  });
+  try {
+    const key = await waitForAPIKey();  // Wait for API key to load
+    
+    chrome.tabs.captureVisibleTab(null, { format: 'jpeg', quality: 100 }, (dataUrl) => {
+      if (chrome.runtime.lastError) {
+        notifyError(new Error(`Screenshot capture failed: ${chrome.runtime.lastError.message}`));
+        return;
+      }
+      chrome.runtime.sendMessage({ 
+        action: 'cropScreenshotAndTranscribe', 
+        apiKey: key,  // ← Changed from apiKey to key
+        selectedVoice: selectedVoice, 
+        systemPrompt: systemPrompt, 
+        dataUrl: dataUrl, 
+        area: area 
+      });
+    });
+  } catch (error) {
+    notifyError(error);
+    throw error;
+  }
 }
 
 chrome.contextMenus.create({
