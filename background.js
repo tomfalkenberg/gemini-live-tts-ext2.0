@@ -66,6 +66,9 @@ chrome.storage.sync.get(['apiKey', 'voice', 'systemPrompt', 'volume'], (items) =
   }
 });
 
+// Pre-create offscreen document on startup for faster first response
+ensureOffscreenDocument().catch(err => console.log('Pre-creation of offscreen doc info:', err.message));
+
 // Listen for API key and other setting changes
 chrome.storage.onChanged.addListener((changes) => {
   try {
@@ -129,36 +132,36 @@ async function checkOffscreenDocumentExists() {
   return contexts.length > 0;
 }
 
+async function ensureOffscreenDocument() {
+  if (await checkOffscreenDocumentExists()) {
+    return;
+  }
+  await chrome.offscreen.createDocument({
+    url: 'offscreen.html',
+    reasons: ['AUDIO_PLAYBACK'],
+    justification: 'Audio streaming'
+  });
+
+  await new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Audio initialization timeout')), 5000);
+    chrome.runtime.sendMessage({ action: 'initializeAudio' }, (response) => {
+      clearTimeout(timeout);
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+      } else {
+        resolve(response);
+      }
+    });
+  });
+}
+
 async function transcribeMessages(...messages) {
   try {
     const key = await waitForAPIKey();  // Wait for API key to load
     validateAPIKey(key);  // Validate it
 	  
-    if (!(await checkOffscreenDocumentExists())) {
-      // Create the offscreen document
-      await chrome.offscreen.createDocument({
-        url: 'offscreen.html',
-        reasons: ['AUDIO_PLAYBACK'],
-        justification: 'Audio streaming'
-      });
-      
-      // WAIT for initialization to complete
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Audio initialization timeout')), 5000);
-        
-        chrome.runtime.sendMessage({ action: 'initializeAudio' }, (response) => {
-          clearTimeout(timeout);
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else {
-            resolve(response);
-          }
-        });
-      });
-      
-      // Small additional safety delay
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+    await ensureOffscreenDocument();
+
     // Now send the transcription message
     chrome.runtime.sendMessage({ 
       action: 'transcribeMessages', 
@@ -176,6 +179,7 @@ async function transcribeMessages(...messages) {
 async function handleScreenshotCapture(area) {
   try {
     const key = await waitForAPIKey();  // Wait for API key to load
+    await ensureOffscreenDocument();
     
     chrome.tabs.captureVisibleTab(null, { format: 'jpeg', quality: 100 }, (dataUrl) => {
       if (chrome.runtime.lastError) {
@@ -238,29 +242,7 @@ function updateActionButton(playbackState) {
 
 // For when the user clicks the action icon
 chrome.action.onClicked.addListener(async (tab) => {
-  // Check if offscreen exists, create if needed
-  if (!(await checkOffscreenDocumentExists())) {
-    await chrome.offscreen.createDocument({
-      url: 'offscreen.html',
-      reasons: ['AUDIO_PLAYBACK'],
-      justification: 'Audio streaming'
-    });
-    
-    // WAIT for initialization
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Initialization timeout')), 5000);
-      chrome.runtime.sendMessage({ action: 'initializeAudio' }, (response) => {
-        clearTimeout(timeout);
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-        } else {
-          resolve(response);
-        }
-      });
-    });
-    
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
+  await ensureOffscreenDocument();
 
   const state = await chrome.runtime.sendMessage({ 'action': 'getPlaybackState' });
   if (state === "playing" || state === "paused") {

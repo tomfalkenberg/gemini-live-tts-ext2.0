@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>FAQ - Gemini Live TTS</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    details {
+      margin-top: 0.5rem;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 8px 12px;
+      border-radius: var(--border-radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: #1e40af;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1><img src="icon-32.png" class="icon" /> Frequently Asked Questions - Gemini Live TTS</h1>
+    <h1><img src="icon-32.png" class="icon" alt="Gemini Icon" /> Frequently Asked Questions - Gemini Live TTS</h1>
     <div class="tips">
       <h3>Is my data safe?</h3>
       <p>Yes, as long as you <em><strong>do not submit any sensitive, confidential, or personal information</strong></em>.</p>
@@ -37,13 +52,12 @@
         <strong>How does Google use my data?</strong>
         <p>Data you send to the <a href="https://ai.google.dev/api/multimodal-live" target="_blank">Gemini Multimodal Live API</a> is subject to the <a href="https://ai.google.dev/gemini-api/terms" target="_blank">Gemini API Terms of Service</a>.
         All data sent to Google is subject to Google's <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank">Terms of Service</a>.</p>
-        <p>If you are using the Gemini API's "Free of charge" plan,
+        <p>If you are using the Gemini API's "Free of charge" plan,</p>
         <ul>
           <li>your data may be used to <a href="https://ai.google.dev/gemini-api/terms#unpaid-services:~:text=Google%20uses%20the%20content%20you%20submit%20to%20the%20Services%20and%20any%20generated%20responses%20to%20provide%2C%20improve%2C%20and%20develop%20Google%20products%20and%20services%20and%20machine%20learning%20technologies%2C%20including%20Google%27s%20enterprise%20features%2C%20products%2C%20and%20services" target="_blank">"provide, improve, and develop Google products and services"</a>;</li>
           <li>in doing so, <a href="https://ai.google.dev/gemini-api/terms#unpaid-services:~:text=human%20reviewers%20may%20read%2C%20annotate%2C%20and%20process%20your%20API%20input%20and%20output" target="_blank"><strong>other humans may see the data you send</strong></a>;</li>
           <li>therefore, <strong>Google says to</strong> <a href="https://ai.google.dev/gemini-api/terms#unpaid-services:~:text=Do%20not%20submit%20sensitive%2C%20confidential%2C%20or%20personal%20information%20to%20the%20Unpaid%20Services." target="_blank"><strong>not submit sensitive, confidential, or personal information</strong></a> while using the free plan.</li>
         </ul>
-        </p>
       </div>
 
     </div>
@@ -110,21 +124,21 @@
       <div class="tip">
         <strong>Text to Speech:</strong>
         <p>Select any text on a webpage, right-click, and choose "Transcribe with Gemini" from the context menu.</p>
-        <img src="example-text.png" class="icon" alt="Example showing text transcription. Selected text is highlighted in blue. A context menu is open. The cursor is hovering over an option in the menu titled 'Transcribe with Gemini'." style="width: 100%; height: auto;" />
+        <img src="example-text.png" class="icon" alt="Example showing text transcription. Selected text is highlighted in blue. A context menu is open. The cursor is hovering over an option in the menu titled 'Transcribe with Gemini'." style="width: 100%; height: auto; border-radius: 8px;" />
       </div>
 
       <div class="tip">
         <strong>Image to Speech:</strong>
         <p>Click the extension icon <img src="page_action-16.png" class="icon" alt="Gemini TTS page action icon" /> in your address bar to activate the image selection tool.</p>
-        <img src="example-image-1.png" class="icon" alt="Example showing the cursor hovering over a button on the address bar. The button is titled 'Take screenshot to send to Gemini'." style="width: 100%; height: auto;" />
+        <img src="example-image-1.png" class="icon" alt="Example showing the cursor hovering over a button on the address bar. The button is titled 'Take screenshot to send to Gemini'." style="width: 100%; height: auto; border-radius: 8px;" />
         <p>Click and drag to select an area of the page to describe.</p>
-        <img src="example-image-2.png" class="icon" alt="Example showing a selection box made over a paragraph." style="width: 100%; height: auto;" />
+        <img src="example-image-2.png" class="icon" alt="Example showing a selection box made over a paragraph." style="width: 100%; height: auto; border-radius: 8px;" />
       </div>
 
       <div class="tip">
         <strong>Playback Controls:</strong>
         <p>Click the extension icon <img src="icon-16.png" class="icon" alt="Gemini TTS browser action icon" /> in your toolbar to open the playback control popup.</p>
-        <img src="example-playback-controls.png" class="icon" alt="Example showing the cursor hovering near a button on the toolbar. A popup is open showing a play button, a stop button, and a volume slider." style="width: 100%; height: auto;" />
+        <img src="example-playback-controls.png" class="icon" alt="Example showing the cursor hovering near a button on the toolbar. A popup is open showing a play button, a stop button, and a volume slider." style="width: 100%; height: auto; border-radius: 8px;" />
       </div>
 
     </div>

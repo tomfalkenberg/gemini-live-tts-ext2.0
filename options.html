@@ -1,62 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Gemini TTS Settings</title>
-   <link rel="stylesheet" href="styles.css">
-   <style>
+  <link rel="stylesheet" href="styles.css">
+  <style>
     details {
       margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 10px 14px;
+      border-radius: var(--border-radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.5);
     }
 
     summary {
       cursor: pointer;
-      padding: 8px 0;
+      padding: 4px 0;
+      font-weight: 600;
+      color: #334155;
     }
 
     #status {
       margin-top: 1rem;
       font-style: italic;
+      color: #1e293b;
+      font-weight: 500;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2><img src="icon-32.png" class="icon" /> Settings</h2>
+    <h2><img src="icon-32.png" class="icon" alt="Settings Icon" /> Settings</h2>
     <div class="step">
       <h3>API Configuration</h3>
       <div class="field">
         <label for="apiKey">Gemini API Key:</label>
-        <div class="api-key-wrapper" style="display: flex; align-items: center;">
+        <div class="api-key-wrapper" style="display: flex; align-items: center; gap: 8px;">
           <input class="api-key-input" type="text" id="apiKey" style="flex-grow: 1;">
-          <button id="toggleApiKeyVisibility" type="button" style="padding: 4px 8px; font-size: 12px; margin-left: 5px;">Show</button>
+          <button id="toggleApiKeyVisibility" type="button" style="padding: 10px 14px; font-size: 13px;">Show</button>
         </div>
       </div>
       <div class="field">
         <label for="voiceSelect">Voice:</label>
-     <select id="voiceSelect">
-  <option value="puck">Puck</option>
-  <option value="charon">Charon</option>
-  <option value="kore">Kore</option>
-  <option value="fenrir">Fenrir</option>
-  <option value="aoede">Aoede (Default)</option>
-  <option value="leda">Leda</option>
-  <option value="orus">Orus</option>
-  <option value="zephyr">Zephyr</option>
-</select>
+        <select id="voiceSelect">
+          <option value="puck">Puck</option>
+          <option value="charon">Charon</option>
+          <option value="kore">Kore</option>
+          <option value="fenrir">Fenrir</option>
+          <option value="aoede">Aoede (Default)</option>
+          <option value="leda">Leda</option>
+          <option value="orus">Orus</option>
+          <option value="zephyr">Zephyr</option>
+        </select>
       </div>
     </div>
 
     <div class="field">
       <details>
         <summary>Advanced settings</summary>
-        <div class="field">
+        <div class="field" style="margin-top: 10px;">
           <label for="systemPrompt" title="Instructions Gemini will follow for text and image inputs.&#013Leave blank to use the default system prompt.">System Prompt:</label>
           <textarea id="systemPrompt" rows="4" placeholder="You generate speech from given text." style="width: 100%;"></textarea>
         </div>
       </details>
     </div>
 
-    <button id="save">Save</button>
+    <button id="save" style="margin-top: 10px;">Save Settings</button>
     <div id="status"></div>
   </div>
   <script src="options.js"></script>

@@ -58,14 +58,14 @@ export class AudioStreamer {
     this.audioQueue = [];
     this.isPlaying = false;
     this.sampleRate = 24000;
-    this.bufferSize = 7680;
+    this.bufferSize = 3840; // Reduced buffer size (approx 160ms chunk down to 80ms) for faster initial playback
     this.processingBuffer = new Float32Array(0);
     this.scheduledTime = 0;
     this.gainNode = this.context.createGain();
     this.gainNode.connect(this.context.destination);
     this.isStreamComplete = false;
     this.checkInterval = null;
-    this.initialBufferTime = 0.3;
+    this.initialBufferTime = 0.08; // Reduced initial buffer latency from 300ms to 80ms
     this.activeSourceNodes = new ObservableSet();
     this.isPaused = false;
     this.volume = 1.0;
@@ -157,7 +157,7 @@ export class AudioStreamer {
             ) {
               this.scheduleNextBuffer();
             }
-          }, 100);
+          }, 30);
         }
       }
     } else {

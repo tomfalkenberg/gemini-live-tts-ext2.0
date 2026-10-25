@@ -26,9 +26,11 @@ const audioSampleRate = 24000;
 
 async function initializeAudio() {
   try {
-    audioContext = new AudioContext({ sampleRate: audioSampleRate });
-    const { AudioStreamer } = await import("./audioStreamer.js");
-    audioStreamer = new AudioStreamer(audioContext);
+    if (!audioContext) {
+      audioContext = new AudioContext({ sampleRate: audioSampleRate });
+      const { AudioStreamer } = await import("./audioStreamer.js");
+      audioStreamer = new AudioStreamer(audioContext);
+    }
     await audioStreamer.resume(); // Initialize with default volume
 
     // Request initial volume from background script
@@ -107,6 +109,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   })();
   return true; // Keep message channel open for async response
 });
+
 (async () => {
   const { CustomError, APIKeyError, WebSocketError } = await import("./errors.js");
 })();
@@ -136,7 +139,7 @@ async function transcribeMessages(...messages) {
 
     if (!audioStreamer) {
       try {
-        initializeAudio();
+        await initializeAudio();
       } catch (error) {
         notifyError(error);
         throw error;
@@ -199,8 +202,15 @@ function createWebSocketClient(voice = 'aoede') {
 
       ws.onmessage = async (event) => {
         try {
-          if (event.data instanceof Blob) {
-            const response = JSON.parse(await event.data.text());
+          let textData = '';
+          if (typeof event.data === 'string') {
+            textData = event.data;
+          } else if (event.data instanceof Blob) {
+            textData = await event.data.text();
+          }
+
+          if (textData) {
+            const response = JSON.parse(textData);
 
             if (response.error) {
               throw new WebSocketError(response.error.message || 'Unknown API error');
@@ -301,8 +311,7 @@ function getContentFromBlob(blob) {
 
     reader.onload = (e) => {
       const data = e.target.result.split(',')[1];
-      //const mimeType = e.target.result.split(',')[0].split(':')[1].split(';')[0];
-	  const mimeType = "audio/pcm";
+      const mimeType = "audio/pcm";
       resolve({ data, mimeType });
     };
 
@@ -323,11 +332,11 @@ async function getContentFromFile(url) {
 
 function realtimeInputMessage(content) {
   return {
-	realtimeInput: {
-	  mediaChunks: [
-		content
-	  ]
-	}
+    realtimeInput: {
+      mediaChunks: [
+        content
+      ]
+    }
   };
 }
 
@@ -374,4 +383,3 @@ async function cropScreenshotAndTranscribe(dataUrl, area) {
     img.src = dataUrl;
   });
 }
-
